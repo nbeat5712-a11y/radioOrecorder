@@ -1,4 +1,4 @@
-name: record-broadcasts.yml
+name: Record broadcasts
 
 on:
   schedule:
