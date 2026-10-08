@@ -31,6 +31,14 @@ jobs:
         with:
           node-version: 20
 
+      # Wraps the raw AAC stream in an M4A container so the website can seek in it.
+      - name: Install ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+
       - name: Record
         env:
           GOOGLE_CALENDAR_API_KEY: ${{ secrets.GOOGLE_CALENDAR_API_KEY }}
