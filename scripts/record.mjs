@@ -39,7 +39,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 
 const STREAM_URL = process.env.STREAM_URL || 'https://c44.radioboss.fm:8178/stream';
 const TIMEZONE = 'Asia/Jerusalem';            // only used for the date in the file name
-const LOOKAHEAD_MS = 25 * 60 * 1000;          // how far ahead the first look at the calendar goes
+const LOOKAHEAD_MS = 60 * 60 * 1000;          // how far ahead the first look at the calendar goes
 const CHAIN_LOOKAHEAD_MS = 3 * 60 * 1000;     // after a recording, only chain events starting this soon
 const MIN_REMAINING_MS = 60 * 1000;           // don't bother with an event that has < 1 minute left
 const JOB_BUDGET_MS = 345 * 60 * 1000;        // GitHub kills jobs at 6h; stay safely under it
