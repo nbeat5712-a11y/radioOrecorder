@@ -1,36 +1,38 @@
-name: Record broadcasts
 
+Record broadcasts yml · TXT
+name: Record broadcasts
+ 
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'record = normal run | setup = only create the Drive folder and print its ID'
+        description: 'record = normal run | reindex = only rebuild the archive list (use after adding or deleting files in the bucket by hand)'
         type: choice
         options:
           - record
-          - setup
+          - reindex
         default: record
-
+ 
 concurrency:
   group: record-broadcasts
   cancel-in-progress: false
-
+ 
 permissions:
   contents: read
-
+ 
 jobs:
   record:
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
+ 
       # Wraps the raw AAC stream in an M4A container so the website can seek in it.
       - name: Install ffmpeg
         run: |
@@ -38,18 +40,25 @@ jobs:
             sudo apt-get update && sudo apt-get install -y ffmpeg
           fi
           ffmpeg -version | head -1
-
+ 
+      # Client for Cloudflare R2 (S3-compatible). --no-save keeps package.json untouched.
+      - name: Install R2 client
+        run: npm install --no-save --no-audit --no-fund @aws-sdk/client-s3 @aws-sdk/lib-storage
+ 
       - name: Record
         env:
           GOOGLE_CALENDAR_API_KEY: ${{ secrets.GOOGLE_CALENDAR_API_KEY }}
           GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
-          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
-          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
-          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
           MODE: ${{ github.event.inputs.mode }}
         run: |
-          if [ "$MODE" = "setup" ]; then
-            node scripts/record.mjs --setup
+          if [ "$MODE" = "reindex" ]; then
+            node scripts/record.mjs --reindex
           else
             node scripts/record.mjs
           fi
+ 
