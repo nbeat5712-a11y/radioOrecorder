@@ -52,7 +52,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const log = (...args) => console.log(new Date().toISOString(), ...args);
 
 function need(name) {
-    const value = process.env[name];
+    // Strip spaces, newlines and invisible characters that sneak in when pasting secrets.
+    const value = (process.env[name] || '').replace(/[^\x21-\x7E]/g, '');
     if (!value) throw new Error(`Missing environment variable ${name}`);
     return value;
 }
